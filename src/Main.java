@@ -1,3 +1,5 @@
+import java.util.Scanner;
+
 public class Main {
     public static void main(String[] args) {
 
@@ -69,5 +71,97 @@ public class Main {
 
         // TODO: after your test calls above, print line.size() again and confirm it changed correctly. clear
         System.out.println("Line size is now " + line.size());
+
+
+        // ---- Interactive register: scan items in, look them up, reprint the report ----
+        Scanner input = new Scanner(System.in);
+        boolean running = true;
+
+        while (running) {
+            System.out.println();
+            System.out.println("1) Scan a new item");
+            System.out.println("2) Look up an item");
+            System.out.println("3) Print daily report");
+            System.out.println("4) Quit");
+            System.out.print("Choose: ");
+
+            // Stop cleanly if input runs out instead of crashing.
+            if (!input.hasNextLine()) {
+                break;
+            }
+
+            String choice = input.nextLine().trim();
+
+            switch (choice) {
+                case "1":
+                    scanNewItem(input, log);
+                    break;
+                case "2":
+                    lookUpItem(input, log);
+                    break;
+                case "3":
+                    log.printDailyReport();
+                    break;
+                case "4":
+                    running = false;
+                    System.out.println("Goodbye.");
+                    break;
+                default:
+                    System.out.println("Please pick 1, 2, 3, or 4.");
+            }
+        }
+
+        input.close();
+    }
+
+    // Reads a name and a price from the keyboard and adds the item to the log.
+    private static void scanNewItem(Scanner input, PurchaseLog log) {
+        System.out.print("Item name: ");
+        String name = input.nextLine().trim();
+
+        if (name.isEmpty()) {
+            System.out.println("No name entered. Nothing was added.");
+            return;
+        }
+
+        System.out.print("Price: $");
+        String priceText = input.nextLine().trim();
+
+        // Read the price as text and convert it, so a typo cannot crash the
+        // program or leave a stray newline sitting in the scanner.
+        double price;
+        try {
+            price = Double.parseDouble(priceText);
+        } catch (NumberFormatException e) {
+            System.out.println("'" + priceText + "' is not a number. Nothing was added.");
+            return;
+        }
+
+        if (price < 0) {
+            System.out.println("A price cannot be negative. Nothing was added.");
+            return;
+        }
+
+        log.addItem(new PurchaseItem(name, price));
+        System.out.printf("Added %s at $%.2f. The log now holds %d items.%n",
+                name, price, log.itemCount());
+    }
+
+    // Reads a name from the keyboard and reports whether it is in the log.
+    private static void lookUpItem(Scanner input, PurchaseLog log) {
+        System.out.print("Item name: ");
+        String query = input.nextLine().trim();
+
+        if (query.isEmpty()) {
+            System.out.println("No name entered.");
+            return;
+        }
+
+        PurchaseItem result = log.findItemByName(query);
+        if (result != null) {
+            System.out.printf("Found %s at $%.2f%n", result.getName(), result.getPrice());
+        } else {
+            System.out.println("No item named '" + query + "' is in the log.");
+        }
     }
 }
